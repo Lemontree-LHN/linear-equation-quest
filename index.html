@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>方程探险队 - 一元一次方程闯关</title>
+  <style>
+    :root{--ink:#18212f;--paper:#f7f3e8;--red:#d94b3d;--green:#23856d;--gold:#f3b61f;--blue:#2866b1;--line:#d7cfbc}
+    *{box-sizing:border-box}body{margin:0;background:var(--paper);color:var(--ink);font-family:system-ui,"PingFang SC","Microsoft YaHei",sans-serif;min-height:100vh}
+    button,input{font:inherit}button{cursor:pointer}.shell{max-width:1060px;margin:auto;padding:18px}.top{display:flex;justify-content:space-between;gap:16px;align-items:center;border-bottom:3px solid var(--ink);padding-bottom:12px}.brand{display:flex;align-items:center;gap:12px}.mark{width:48px;height:48px;display:grid;place-items:center;background:var(--red);color:white;font-size:26px;font-weight:900;transform:rotate(-3deg)}h1{font-size:clamp(22px,4vw,34px);margin:0;letter-spacing:0}.subtitle{margin:2px 0 0;color:#5c6570;font-size:14px}.stats{display:flex;gap:8px;flex-wrap:wrap;justify-content:flex-end}.stat{border:2px solid var(--ink);background:white;padding:6px 10px;min-width:78px;text-align:center;font-weight:800}.stat small{display:block;font-weight:500;color:#657080}.route{display:grid;grid-template-columns:repeat(12,1fr);gap:5px;margin:18px 0}.node{height:12px;background:#ddd5c3;border:1px solid #afa792}.node.done{background:var(--green)}.node.now{background:var(--gold);outline:2px solid var(--ink)}
+    .layout{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(260px,.8fr);gap:18px}.panel{border:2px solid var(--ink);background:white;box-shadow:5px 5px 0 var(--ink)}.main{padding:clamp(18px,4vw,38px);min-height:510px;display:flex;flex-direction:column}.chapter{color:var(--red);font-size:14px;font-weight:900}.prompt{font-size:clamp(16px,2vw,20px);margin:22px 0 8px}.equation{font-family:Georgia,serif;font-size:clamp(38px,8vw,68px);font-weight:700;text-align:center;margin:18px 0 28px}.answer-row{display:flex;align-items:center;justify-content:center;gap:10px}.answer-row label{font:700 28px Georgia,serif}.answer-row input{width:150px;border:3px solid var(--ink);padding:12px;text-align:center;font-size:26px;font-weight:800;background:#fffdf5}.actions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:18px}.btn{border:2px solid var(--ink);padding:10px 18px;background:white;font-weight:800;box-shadow:3px 3px 0 var(--ink)}.btn:active{transform:translate(2px,2px);box-shadow:1px 1px 0}.primary{background:var(--blue);color:white}.hint-btn{background:var(--gold)}.feedback{margin-top:22px;border-left:5px solid var(--blue);padding:12px 14px;background:#eef5fc;min-height:52px}.feedback.good{border-color:var(--green);background:#e8f5f0}.feedback.bad{border-color:var(--red);background:#fff0ed}.feedback strong{display:block;margin-bottom:4px}.steps{margin:8px 0 0;padding-left:22px}.side{padding:20px}.side h2{margin:0 0 12px;font-size:18px}.rule{padding:13px 0;border-bottom:1px solid var(--line)}.rule:last-child{border:0}.rule b{color:var(--blue)}.tip{background:#fff6d6;border:2px solid var(--gold);padding:12px;margin-top:16px}.hidden{display:none!important}.finish{text-align:center;justify-content:center}.finish h2{font-size:36px;margin:0 0 8px}.score-big{font-size:72px;font-weight:900;color:var(--red)}.review{text-align:left;max-height:210px;overflow:auto;border-top:2px solid var(--ink);margin-top:18px;padding-top:12px}.review-item{padding:8px 0;border-bottom:1px solid var(--line)}
+    @media(max-width:760px){.top{align-items:flex-start;flex-direction:column}.stats{justify-content:flex-start}.layout{grid-template-columns:1fr}.side{box-shadow:none}.route{gap:3px}.main{min-height:460px}.answer-row input{width:130px}}
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <header class="top"><div class="brand"><div class="mark">x</div><div><h1>方程探险队</h1><p class="subtitle">守住等号两边的平衡，破解 12 道机关</p></div></div><div class="stats"><div class="stat"><small>得分</small><span id="score">0</span></div><div class="stat"><small>连胜</small><span id="streak">0</span></div><div class="stat"><small>能量</small><span id="lives">3</span></div></div></header>
+    <div class="route" id="route" aria-label="关卡进度"></div>
+    <div class="layout">
+      <section class="panel main" id="game">
+        <div class="chapter" id="chapter"></div><div class="prompt">解出未知数 x：</div><div class="equation" id="equation"></div>
+        <div class="answer-row"><label for="answer">x =</label><input id="answer" type="text" inputmode="decimal" autocomplete="off" aria-label="输入 x 的值"></div>
+        <div class="actions"><button class="btn hint-btn" id="hint">查看提示</button><button class="btn primary" id="submit">提交答案</button></div>
+        <div class="feedback" id="feedback" aria-live="polite"><strong>准备好了吗？</strong>先想一想：怎样让 x 单独留在等号一边。</div>
+      </section>
+      <section class="panel main finish hidden" id="finish"><h2>闯关完成</h2><div class="score-big" id="finalScore"></div><p id="finalText"></p><div class="review" id="review"></div><button class="btn primary" id="restart">再闯一次</button></section>
+      <aside class="panel side"><h2>方程工具箱</h2><div class="rule"><b>等式性质</b><br>等号两边同时加、减、乘或除以同一个数，等式仍成立。</div><div class="rule"><b>目标</b><br>一步步把含 x 的项放在一边，把常数项放在另一边。</div><div class="rule"><b>最后检查</b><br>把求出的 x 代回原方程，看看左右两边是否相等。</div><div class="tip">提示会逐层展开。第一次只给方向，第二次会给具体步骤。使用提示不会扣能量，但本题得分会减少。</div></aside>
+    </div>
+  </main>
+  <script>
+    const levels=[
+      {c:'第一站 · 热身营地',q:'x + 7 = 15',a:8,h:['想办法消去左边的 +7。','等号两边同时减 7。'],s:['x + 7 - 7 = 15 - 7','x = 8']},
+      {c:'第一站 · 热身营地',q:'x - 9 = 4',a:13,h:['想办法消去左边的 -9。','等号两边同时加 9。'],s:['x - 9 + 9 = 4 + 9','x = 13']},
+      {c:'第一站 · 热身营地',q:'5x = 35',a:7,h:['x 被 5 乘着，做相反运算。','等号两边同时除以 5。'],s:['5x ÷ 5 = 35 ÷ 5','x = 7']},
+      {c:'第二站 · 移项峡谷',q:'3x + 5 = 20',a:5,h:['先消去常数项 +5，再处理 3x。','两边减 5，得到 3x=15；再两边除以 3。'],s:['3x + 5 - 5 = 20 - 5','3x = 15','x = 5']},
+      {c:'第二站 · 移项峡谷',q:'4x - 7 = 21',a:7,h:['先消去 -7。','两边加 7，得到 4x=28；再除以 4。'],s:['4x - 7 + 7 = 21 + 7','4x = 28','x = 7']},
+      {c:'第二站 · 移项峡谷',q:'7x + 4 = 3x + 24',a:5,h:['把含 x 的项集中到一边。','两边减 3x，再减 4，得到 4x=20。'],s:['7x - 3x + 4 = 24','4x + 4 = 24','4x = 20','x = 5']},
+      {c:'第三站 · 括号森林',q:'2(x + 3) = 18',a:6,h:['可以先除以 2，也可以先去括号。','两边除以 2，得到 x+3=9；再减 3。'],s:['x + 3 = 9','x = 6']},
+      {c:'第三站 · 括号森林',q:'3(x - 2) + 4 = 19',a:7,h:['先去括号，再合并常数项。','去括号得 3x-6+4=19，整理后是 3x-2=19。'],s:['3x - 6 + 4 = 19','3x - 2 = 19','3x = 21','x = 7']},
+      {c:'第三站 · 括号森林',q:'5 - 2(x - 1) = -7',a:7,h:['注意负号也要乘进括号。','-2(x-1)=-2x+2，所以左边化为 7-2x。'],s:['5 - 2x + 2 = -7','7 - 2x = -7','-2x = -14','x = 7']},
+      {c:'最终站 · 分数城堡',q:'x / 3 + 2 = 6',a:12,h:['先消去 +2。','两边减 2，得 x/3=4；再两边乘 3。'],s:['x / 3 = 4','x = 12']},
+      {c:'最终站 · 分数城堡',q:'(x - 1) / 4 = 3',a:13,h:['先消去分母 4。','两边乘 4，得到 x-1=12；再加 1。'],s:['x - 1 = 12','x = 13']},
+      {c:'最终站 · 守关挑战',q:'(2x + 1) / 3 = x - 2',a:7,h:['先让等式中不再有分母。','两边乘 3，得到 2x+1=3x-6，再把 x 项和常数项分开。'],s:['2x + 1 = 3x - 6','1 = x - 6','x = 7']}
+    ];
+    let i=0,score=0,streak=0,lives=3,hints=0,wrong=[];
+    const $=id=>document.getElementById(id), answer=$('answer'), feedback=$('feedback');
+    function renderRoute(){ $('route').innerHTML=levels.map((_,n)=>`<div class="node ${n<i?'done':n===i?'now':''}"></div>`).join('') }
+    function render(){const l=levels[i];$('chapter').textContent=`关卡 ${i+1}/12 · ${l.c}`;$('equation').textContent=l.q;answer.value='';answer.focus();hints=0;feedback.className='feedback';feedback.innerHTML='<strong>轮到你了</strong>先独立尝试；遇到困难再查看提示。';renderRoute();updateStats()}
+    function updateStats(){$('score').textContent=score;$('streak').textContent=streak;$('lives').textContent='●'.repeat(lives)+'○'.repeat(3-lives)}
+    function explain(l){return `<strong>这一步容易错</strong>正确答案是 x = ${l.a}。逐步看：<ol class="steps">${l.s.map(x=>`<li>${x}</li>`).join('')}</ol><span>把 x = ${l.a} 代回原方程，左右两边相等。</span>`}
+    function submit(){const raw=answer.value.trim(),val=Number(raw),l=levels[i];if(!raw||!Number.isFinite(val)){feedback.className='feedback bad';feedback.innerHTML='<strong>还没有有效答案</strong>请输入一个数字，例如 5 或 -2。';return}if(Math.abs(val-l.a)<1e-9){const gain=Math.max(40,100-hints*20)+streak*10;score+=gain;streak++;feedback.className='feedback good';feedback.innerHTML=`<strong>正确，+${gain} 分</strong>${l.s.join(' → ')}`;setTimeout(next,900)}else{lives=Math.max(0,lives-1);streak=0;wrong.push({q:l.q,given:raw,a:l.a});feedback.className='feedback bad';feedback.innerHTML=explain(l);updateStats();$('submit').textContent='我明白了，下一题';$('submit').onclick=next}}
+    function next(){ $('submit').textContent='提交答案';$('submit').onclick=submit;i++;if(i>=levels.length){finish();return}if(lives===0)lives=3;render() }
+    function showHint(){const l=levels[i];if(hints<l.h.length){feedback.className='feedback';feedback.innerHTML=`<strong>提示 ${hints+1}/${l.h.length}</strong>${l.h[hints]}`;hints++}else feedback.innerHTML=`<strong>完整思路</strong><ol class="steps">${l.s.map(x=>`<li>${x}</li>`).join('')}</ol>`}
+    function finish(){$('game').classList.add('hidden');$('finish').classList.remove('hidden');$('finalScore').textContent=score;$('finalText').textContent=wrong.length?`完成 12 关，有 ${wrong.length} 道题值得再练一次。`:'全程正确！你已经掌握了这些一元一次方程。';$('review').innerHTML=wrong.length?'<strong>错题回顾</strong>'+wrong.map(x=>`<div class="review-item">${x.q}　你的答案：${x.given}　正确答案：x = ${x.a}</div>`).join(''):'<div class="review-item">没有错题，表现稳定。</div>';i=levels.length;renderRoute()}
+    function restart(){i=0;score=0;streak=0;lives=3;wrong=[];$('finish').classList.add('hidden');$('game').classList.remove('hidden');render()}
+    $('submit').onclick=submit;$('hint').onclick=showHint;$('restart').onclick=restart;answer.addEventListener('keydown',e=>{if(e.key==='Enter')$('submit').click()});render();
+  </script>
+</body>
+</html>
